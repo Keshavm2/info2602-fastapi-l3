@@ -59,7 +59,7 @@ def toggle_todo(todo_id:int, username:str):
 
 @cli.command()
 def list_todo_categories(todo_id:int, username:str):
-    with get_session() as db: # Get a connection to the database
+    with get_session() as db: 
         todo = db.exec(select(Todo).where(Todo.id == todo_id)).one_or_none()
         if not todo:
             print("Todo doesn't exist")
@@ -70,7 +70,7 @@ def list_todo_categories(todo_id:int, username:str):
 
 @cli.command()
 def create_category(username:str, cat_text:str):
-    with get_session() as db: # Get a connection to the database
+    with get_session() as db: 
         user = db.exec(select(User).where(User.username == username)).one_or_none()
         if not user:
             print("User doesn't exist")
@@ -89,7 +89,7 @@ def create_category(username:str, cat_text:str):
 
 @cli.command()
 def list_user_categories(username:str):
-    with get_session() as db: # Get a connection to the database
+    with get_session() as db: 
         user = db.exec(select(User).where(User.username == username)).one_or_none()
         if not user:
             print("User doesn't exist")
@@ -99,7 +99,7 @@ def list_user_categories(username:str):
 
 @cli.command()
 def assign_category_to_todo(username:str, todo_id:int, category_text:str):
-    with get_session() as db: # Get a connection to the database
+    with get_session() as db: 
         user = db.exec(select(User).where(User.username == username)).one_or_none()
         if not user:
             print("User doesn't exist")
@@ -121,6 +121,42 @@ def assign_category_to_todo(username:str, todo_id:int, category_text:str):
         db.add(todo)
         db.commit()
         print("Added category to todo")
+
+@cli.command()
+def list_todo_info():
+    with get_session() as db:
+        todos = db.exec(select(Todo)).all()
+        for todo in todos:
+            print(f"ID: {todo.id}, User: {todo.user.username}, Text: {todo.text}, Done: {todo.done}")
+
+@cli.command()
+def delete_todo_ID(todo_id:int):
+    with get_session() as db:
+        todo = db.exec(select(Todo).where(Todo.id == todo_id)).one_or_none()
+        if not todo:
+            print("Todo doesn't exist")
+            return
+
+        db.delete(todo)
+        db.commit()
+        print("Todo deleted")
+
+@cli.command()
+def todo_complete(username:str):
+    with get_session() as db:
+        user = db.exec(select(User).where(User.username == username)).one_or_none()
+        if not user:
+            print("User doesn't exist")
+            return
+        
+        todos = db.exec(select(Todo).where(Todo.user_id == user.id)).all()
+        
+        for todo in todos:
+            todo.done = True
+            db.add(todo)
+
+        db.commit()
+        print("All todos marked as complete")
 
 if __name__ == "__main__":
     cli()
